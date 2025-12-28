@@ -8,9 +8,9 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 class WilayahSeeder extends Seeder
-{ // <--- Pembuka Class
+{ 
     public function run(): void
-    { // <--- Pembuka Method run
+    { 
         Schema::disableForeignKeyConstraints();
         DB::table('wilayah')->truncate();
         Schema::enableForeignKeyConstraints();
@@ -36,5 +36,5 @@ class WilayahSeeder extends Seeder
                 DB::table('wilayah')->insert($chunk);
             }
         }
-    } // <--- Penutup Method run
-} // <--- Penutup Class (PASTIKAN TIDAK ADA KURUNG KELEBIHAN DI SINI)
+    } 
+} 

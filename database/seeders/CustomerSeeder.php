@@ -10,7 +10,7 @@ class CustomerSeeder extends Seeder
 {
     public function run(): void
     {
-        // Ambil satu ID wilayah yang baru saja di-seed dari API
+
         $wilayah = Wilayah::first();
 
         if ($wilayah) {

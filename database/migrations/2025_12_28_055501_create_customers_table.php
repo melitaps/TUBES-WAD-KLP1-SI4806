@@ -8,13 +8,13 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::create('customers', function (Blueprint $table) {
-            $table->id(); // BIGINT UNSIGNED
+            $table->id();
 
             $table->string('nama');
             $table->string('no_hp');
             $table->text('alamat');
 
-            // FOREIGN KEY (WAJIB SAMA DENGAN wilayah.id)
+
             $table->unsignedBigInteger('wilayah_id');
 
             $table->integer('total_pesanan')->default(0);
@@ -22,7 +22,7 @@ return new class extends Migration {
 
             $table->timestamps();
 
-            // FOREIGN KEY CONSTRAINT
+
             $table->foreign('wilayah_id')
                   ->references('id')
                   ->on('wilayah')
