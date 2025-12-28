@@ -6,12 +6,26 @@
         <div class="col-md-5">
             <div class="card shadow">
                 <div class="card-header text-center">
-                    <h4>Login</h4>
+                    <h4>Registrasi</h4>
                 </div>
 
                 <div class="card-body">
-                    <form method="POST" action="{{ route('login') }}">
+                    <form method="POST" action="{{ route('register') }}">
                         @csrf
+
+                        {{-- NAMA --}}
+                        <div class="mb-3">
+                            <label class="form-label">Nama</label>
+                            <input type="text" 
+                                   name="name" 
+                                   class="form-control @error('name') is-invalid @enderror"
+                                   value="{{ old('name') }}"
+                                   required>
+
+                            @error('name')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
 
                         {{-- EMAIL --}}
                         <div class="mb-3">
@@ -40,18 +54,21 @@
                             @enderror
                         </div>
 
-                        {{-- REMEMBER --}}
-                        <div class="mb-3 form-check">
-                            <input type="checkbox" name="remember" class="form-check-input">
-                            <label class="form-check-label">Remember me</label>
+                        {{-- CONFIRM PASSWORD --}}
+                        <div class="mb-3">
+                            <label class="form-label">Konfirmasi Password</label>
+                            <input type="password" 
+                                   name="password_confirmation" 
+                                   class="form-control"
+                                   required>
                         </div>
 
-                        <button class="btn btn-primary w-100">Login</button>
+                        <button class="btn btn-success w-100">Daftar</button>
                     </form>
 
                     <div class="text-center mt-3">
-                        <small>Belum punya akun?
-                            <a href="{{ route('register') }}">Daftar</a>
+                        <small>Sudah punya akun?
+                            <a href="{{ route('login') }}">Login</a>
                         </small>
                     </div>
                 </div>

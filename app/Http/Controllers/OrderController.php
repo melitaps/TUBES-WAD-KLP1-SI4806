@@ -20,7 +20,7 @@ class OrderController extends Controller
             'no_hp' => $request->no_hp,
             'alamat' => $request->alamat,
             'metode_pembayaran' => $request->metode_pembayaran,
-            'catatan' => $request->catatan,
+            'catatan_tambahan' => $request->catatan,
 
             'total_harga' => $request->total_harga,
             'status' => 'menunggu'

@@ -6,41 +6,75 @@ Use App\Models\Order;
 use Illuminate\Http\Request;
 use App\Exports\OrdersReportExport;
 use Maatwebsite\Excel\Facades\Excel;
+use App\Http\Controllers\Controller;
+use App\Models\Report;
+use Carbon\Carbon;
 
 class ReportController extends Controller
 {
-    public function index(Request $request)
+    public function indexWeb(Request $request)
     {
-        $query = Order::with('pelanggan');
+        $now = Carbon::now();
 
-        if ($request->filled('start_date') && $request->filled('end_date')) {
-            $query->whereBetween('created_at', [
-                $request->start_date,
-                $request->end_date
-            ]);
+        $year  = $request->year ?? $now->year;
+        $month = $request->month ?? $now->month;
+        $date  = $request->date;
+
+        if ($date) {
+            $orders = Report::dailyDetail($date);
+            $total  = Report::total(null, null, $date);
+        } else {
+            $orders = Report::monthlyDetail($year, $month);
+            $total  = Report::total($year, $month);
         }
 
-        $orders = $query->get();
+        // Tambahin item pesanan
+        foreach ($orders as $order) {
+            $order->items = Report::orderItems($order->id);
+        }
 
-        // Statistik
-        $totalOrder = $orders->count();
-        $totalIncome = $orders->sum('total_harga');
+        return view('laporan.index', [
+            'orders' => $orders,
+            'totalPesanan' => $total['total_pesanan'],
+            'totalPendapatan' => $total['total_pendapatan'],
+            'year' => $year,
+            'month' => $month,
+            'date' => $date
+        ]);
+    }
 
-        return view('reports.index', compact(
-            'orders',
-            'totalOrder',
-            'totalIncome'
-        ));
+    public function index(Request $request)
+    {
+        $now = Carbon::now();
+
+        $year  = $request->year ?? $now->year;
+        $month = $request->month ?? $now->month;
+        $date  = $request->date;
+
+        if ($date) {
+            $data = Report::dailyDetail($date);
+            $total = Report::total(null, null, $date);
+        } else {
+            $data = Report::monthlyDetail($year, $month);
+            $total = Report::total($year, $month);
+        }
+
+        return response()->json([
+            'filter' => $date ? 'harian' : 'bulanan',
+            'data' => $data,
+            'summary' => $total
+        ]);
     }
 
     public function export(Request $request)
-    {
-        return Excel::download(
-            new OrdersReportExport(
-                $request->start_date,
-                $request->end_date
-            ),
-            'laporan-orders.xlsx'
-        );
-    }
+{
+    $year  = $request->year;
+    $month = $request->month;
+    $date  = $request->date;
+
+    return Excel::download(
+        new OrdersReportExport($year, $month, $date),
+        'laporan_pendapatan.xlsx'
+    );
+}
 }
