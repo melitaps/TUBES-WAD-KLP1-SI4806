@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\CustomerController;
 use Illuminate\Http\Request;
 use App\Http\Controllers\MenuController;
 use Illuminate\Support\Facades\Route;
@@ -11,7 +12,7 @@ use App\Http\Controllers\AuthController;
 
 
 
-=======
+
 
 
 
@@ -45,11 +46,15 @@ Route::middleware('auth:sanctum')->group(function () {
      */
     Route::get('/holidays', [HolidayController::class, 'index']);
     
-  Route::get('/menu', [MenuController::class, 'index']);
-Route::post('/menu', [MenuController::class, 'store']);
-Route::get('/menu/{id}', [MenuController::class, 'show']);
-Route::put('/menu/{id}', [MenuController::class, 'update']);
-Route::delete('/menu/{id}', [MenuController::class, 'destroy']);
+  //menu
+    Route::get('/menu', [MenuController::class, 'index']);
+    Route::post('/menu', [MenuController::class, 'store']);
+    Route::get('/menu/{id}', [MenuController::class, 'show']);
+    Route::put('/menu/{id}', [MenuController::class, 'update']);
+    Route::delete('/menu/{id}', [MenuController::class, 'destroy']);
+
+
+    //customer
+    Route::apiResource('customers', CustomerController::class);
 
 });
-
