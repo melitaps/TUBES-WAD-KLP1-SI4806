@@ -6,6 +6,7 @@ use App\Http\Controllers\Customer\OrderController;
 Route::get('/', function () {
     return view('welcome');
 });
+});
 
 // ===============================
 // Customer Routes - Pemesanan

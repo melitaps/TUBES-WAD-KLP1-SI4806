@@ -2,42 +2,77 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Menu;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
+use App\Models\Menu;
+use App\Models\Kategori;
+
 class MenuController extends Controller
 {
-    public function index()
+    public function halamanMenu()
     {
-        return Menu::with('kategori')->get();
+        return view('welcome', [
+            'menu' => Menu::with('kategori')->get(),
+            'kategori' => Kategori::all()
+        ]);
     }
 
+    //semua//
+    public function index()
+    {
+        return response()->json(
+            Menu::with('kategori')->get()
+        );
+    }
+
+    //tambah//
     public function store(Request $request)
     {
         $request->validate([
-            'kategori_id' => 'required|exists:kategoris,id',
-            'nama_menu' => 'required',
-            'harga' => 'required|integer',
-            'deskripsi' => 'required'
+            'nama_menu'   => 'required',
+            'harga'       => 'required|numeric|min:0',
+            'deskripsi'   => 'nullable',
+            'kategori_id' => 'required|exists:kategori,id',
         ]);
 
-        return Menu::create($request->all());
+        Menu::create($request->all());
+
+        return redirect('/')
+            ->with('success', 'Menu berhasil ditambahkan');
     }
 
+    //detail//
     public function show($id)
     {
-        return Menu::with('kategori')->findOrFail($id);
+        return response()->json(
+            Menu::with('kategori')->findOrFail($id)
+        );
     }
 
+    //update//
     public function update(Request $request, $id)
     {
         $menu = Menu::findOrFail($id);
+
+        $request->validate([
+            'nama_menu'   => 'required',
+            'harga'       => 'required|numeric|min:0',
+            'deskripsi'   => 'nullable',
+            'kategori_id' => 'required|exists:kategori,id',
+        ]);
+
         $menu->update($request->all());
-        return $menu;
+
+        return redirect('/')
+            ->with('success', 'Menu berhasil diperbarui');
     }
 
+    //hpus//
     public function destroy($id)
     {
         Menu::destroy($id);
-        return response()->json(['message' => 'Menu deleted']);
+
+        return redirect('/')
+            ->with('success', 'Menu berhasil dihapus');
     }
 }

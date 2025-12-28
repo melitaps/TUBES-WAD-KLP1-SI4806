@@ -9,8 +9,7 @@ class Menu extends Model
 {
     use HasFactory;
 
-    protected $table = 'menus';
-
+    protected $table = 'menu';
     protected $fillable = [
         'nama_menu',
         'harga',
@@ -18,13 +17,9 @@ class Menu extends Model
         'kategori_id',
     ];
 
-    public function kategoris()
+    //menu belongsTo kategori//
+    public function kategori()
     {
         return $this->belongsTo(Kategori::class, 'kategori_id');
-    }
-
-    public function orderDetails()
-    {
-        return $this->hasMany(OrderDetail::class);
     }
 }
