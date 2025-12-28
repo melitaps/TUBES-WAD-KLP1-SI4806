@@ -12,5 +12,13 @@ class DatabaseSeeder extends Seeder
             WilayahSeeder::class,
 
         ]);
+
+        $this->call([
+            AdminSeeder::class,
+        ]);
+
+        $this->call([
+            CustomerSeeder::class,
+        ]);
     }
 }

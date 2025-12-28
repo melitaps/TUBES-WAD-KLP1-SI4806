@@ -1,3 +1,4 @@
+
 <?php
 
 use App\Http\Controllers\CustomerController;
@@ -7,45 +8,43 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\OrderStatusController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\HolidayController;
-use App\Http\Controllers\AuthController;
-
-
-
-
-
-
-
-
+use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\ReportController;
 
 /**
- * ==========1===========
+ * 
  * unprotected routes for user registration and login
  */
-Route::post('/register', [AuthController::class, 'register']);
-Route::post('/login', [AuthController::class, 'login']);
+Route::prefix('auth')->group(function () {
+Route::post('/register', [RegisterController::class, 'registerApi']);
+Route::post('/login', [LoginController::class, 'loginApi']);
+});
+
 
 /**
- * =========2===========
+ * 
  * protected routes, only accessible with valid token
  */
 
 Route::middleware('auth:sanctum')->group(function () {
     /**
-     * =========3===========
+     * 
      * User logout route
      */
-    Route::post('/logout', [AuthController::class, 'logout']);
+    Route::post('/logout', [LoginController::class, 'logoutApi']);
      /**
      * ORDER - MENU 3
      */
-    Route::get('/order', [OrderController::class, 'index']);
-    Route::post('/order', [OrderController::class, 'store']);
-    Route::get('/order/{id}', [OrderController::class, 'show']);
+    Route::get('/orders', [OrderController::class, 'index']);
+    Route::post('/orders', [OrderController::class, 'store']);
+    Route::get('/orders/{id}', [OrderController::class, 'show']);
 
     /**
      * HARI LIBUR NASIONAL
      */
     Route::get('/holidays', [HolidayController::class, 'index']);
+   
     
   //menu
     Route::get('/menu', [MenuController::class, 'index']);
@@ -60,5 +59,8 @@ Route::middleware('auth:sanctum')->group(function () {
     
     //status order dr admin
     Route::put('/orders/{id}/status', [OrderStatusController::class, 'updateStatus']);
+
+    //laporan
+   Route::get('/reports', [ReportController::class, 'index']);
 
 });

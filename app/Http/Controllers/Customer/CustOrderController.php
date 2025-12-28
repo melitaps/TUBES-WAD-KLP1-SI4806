@@ -1,14 +1,15 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Customer;
 
 use Illuminate\Http\Request;
 use App\Models\Order;
 use App\Models\OrderDetail;
 use App\Models\Menu;
 use Illuminate\Support\Facades\DB;
+use App\Http\Controllers\Controller;
 
-class OrderController extends Controller
+class CustOrderController extends Controller
 {
     /**
      * GET /api/orders
@@ -31,7 +32,7 @@ class OrderController extends Controller
     public function store(Request $request)
     {
         // Max 20 pesanan aktif
-        $aktif = Order::whereIn('status', ['pending', 'diproses'])->count();
+        $aktif = Order::whereIn('status', ['menunggu', 'diproses'])->count();
         if ($aktif >= 20) {
             return response()->json([
                 'success' => false,
@@ -119,4 +120,5 @@ class OrderController extends Controller
             'data' => $order
         ]);
     }
+
 }

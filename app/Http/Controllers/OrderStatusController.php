@@ -15,7 +15,7 @@ class OrderStatusController extends Controller
         $orders = Order::orderBy('created_at', 'desc')->get();
         $slotAktif = Order::whereIn('status', ['menunggu', 'diproses'])->count();
 
-        return view('welcome', compact('orders', 'slotAktif'));
+        return view('status', compact('orders', 'slotAktif'));
     }
 
     /**
