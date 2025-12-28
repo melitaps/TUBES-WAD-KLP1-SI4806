@@ -11,10 +11,10 @@ class CustomerController extends Controller
 {
     public function index(Request $request)
     {
-        // Query dasar dengan relasi wilayah
+
         $query = Customer::with('wilayah');
 
-        // Logic fitur "Cari" sesuai UI
+
         if ($request->has('search')) {
             $search = $request->get('search');
             $query->where('nama', 'like', "%{$search}%")
@@ -24,7 +24,7 @@ class CustomerController extends Controller
 
         $customers = $query->latest()->get();
         
-        // Menghitung total pelanggan untuk card di UI
+
         $totalPelanggan = Customer::count();
 
         if ($request->expectsJson()) {
@@ -56,7 +56,7 @@ class CustomerController extends Controller
             return redirect()->back()->withErrors($validator)->withInput();
         }
 
-        // Default nilai transaksi sesuai UI jika tidak diisi
+
         $data = $request->all();
         $data['total_pesanan'] = $request->total_pesanan ?? 0;
         $data['total_transaksi'] = $request->total_transaksi ?? 0;
