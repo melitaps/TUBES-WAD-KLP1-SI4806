@@ -11,7 +11,7 @@ class ReportController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Order::with('customer');
+        $query = Order::with('pelanggan');
 
         if ($request->filled('start_date') && $request->filled('end_date')) {
             $query->whereBetween('created_at', [
