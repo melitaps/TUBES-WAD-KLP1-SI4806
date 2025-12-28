@@ -4,6 +4,7 @@ use App\Http\Controllers\CustomerController;
 use Illuminate\Http\Request;
 use App\Http\Controllers\MenuController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\OrderStatusController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\HolidayController;
 use App\Http\Controllers\AuthController;
@@ -56,5 +57,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
     //customer
     Route::apiResource('customers', CustomerController::class);
+    
+    //status order dr admin
+    Route::put('/orders/{id}/status', [OrderStatusController::class, 'updateStatus']);
 
 });
