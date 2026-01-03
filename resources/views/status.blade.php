@@ -1,200 +1,64 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Status Pesanan</title>
+@extends('layouts.app')
 
-    <style>
-        body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-            background: #f2f2f2;
-        }
+@section('title', 'Dashboard - Pesanan')
 
-        /* NAVBAR */
-        .navbar {
-            background: white;
-            padding: 15px 40px;
-            display: flex;
-            justify-content: space-between;
-            border-bottom: 2px solid #ddd;
-        }
-        .nav-left {
-            display: flex;
-            gap: 25px;
-            align-items: center;
-        }
-        .logo {
-            width: 40px;
-            height: 40px;
-            background: #ccc;
-            border-radius: 50%;
-        }
-        .nav-left a {
-            text-decoration: none;
-            color: black;
-        }
-        .nav-left .active {
-            border-bottom: 4px solid gray;
-            padding-bottom: 5px;
-        }
-
-        /* CONTENT */
-        .container {
-            padding: 30px 40px;
-        }
-        .top {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 20px;
-        }
-
-        /* FILTER */
-        .filter {
-            display: flex;
-            gap: 15px;
-        }
-        input, select {
-            background: #d9d9d9;
-            border: none;
-            padding: 8px;
-        }
-
-        /* SLOT CARD */
-        .slot {
-            background: #d9d9d9;
-            padding: 20px 30px;
-            width: 280px;
-        }
-        .slot h1 {
-            margin: 10px 0;
-            font-size: 38px;
-        }
-
-        /* TABLE */
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            background: #e0e0e0;
-        }
-        th, td {
-            border: 2px solid white;
-            padding: 12px;
-            text-align: center;
-        }
-        th {
-            background: #cfcfcf;
-        }
-        .btn {
-            padding: 6px 14px;
-            border: none;
-            background: #8a8a8a;
-            cursor: pointer;
-        }
-    </style>
-</head>
-<body>
-
-<!-- NAVBAR -->
-<div class="navbar">
-    <div class="nav-left">
-        <div class="logo"></div>
-        <a href="#">Dashboard</a>
-        <a href="#">Manajemen Menu</a>
-        <a href="#">Manajemen Pelanggan</a>
-        <a href="#" class="active">Status Pesanan</a>
-        <a href="#">Laporan & Statistik</a>
-    </div>
-    <a href="#">Logout</a>
-</div>
-
-<!-- CONTENT -->
-<div class="container">
-
-    <div class="top">
-        <div class="filter">
-            <input type="text" placeholder="ID Pesanan">
-            <select>
-                <option>Status</option>
-                <option>Menunggu</option>
-                <option>Diproses</option>
-                <option>Selesai</option>
-            </select>
-        </div>
-
-        <div class="slot">
-            <div>Slot Pesanan Aktif</div>
-            <h1>{{ $slotAktif ?? 1 }} / 20</h1>
-            <small>30 hari terakhir</small>
+@section('content')
+<div class="container py-5">
+    <h1 class="text-center mb-5 display-4 fw-bold" style="color: var(--nra-green);">Pesanan</h1>
+    
+    <div class="card card-custom">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover table-custom">
+                    <thead>
+                        <tr>
+                            <th>ID Pesanan</th>
+                            <th>Waktu</th>
+                            <th>Nama</th>
+                            <th>Pesanan</th>
+                            <th>Status</th>
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($orders as $order)
+                        <tr>
+                            <td><strong>{{ $order->no_order }}</strong></td>
+                            <td>{{ $order->created_at->format('d/m/Y, H:i') }}</td>
+                            <td>{{ $order->nama_pemesan }}</td>
+                            <td>
+                                @php
+                                    $items = $order->orderDetails->map(fn($d) => $d->menu->nama_menu)->take(2)->join(', ');
+                                    $more = $order->orderDetails->count() > 2 ? '...' : '';
+                                @endphp
+                                {{ $items }}{{ $more }}
+                            </td>
+                            <td>
+                                <span class="badge badge-{{ strtolower($order->status) }}">
+                                    {{ ucfirst($order->status) }}
+                                </span>
+                            </td>
+                            <td>
+                                <a href="{{ url('/orders/'.$order->id) }}" class="btn btn-success btn-sm">
+                                    <i class="bi bi-eye"></i> Detail
+                                </a>
+                                <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editModal{{ $order->id }}">
+                                    <i class="bi bi-pencil"></i> Edit
+                                </button>
+                            </td>
+                        </tr>
+                        @empty
+                        <tr>
+                            <td colspan="6" class="text-center py-4">
+                                <i class="bi bi-inbox" style="font-size: 3rem; color: #ccc;"></i>
+                                <p class="mt-2 text-muted">Belum ada pesanan</p>
+                            </td>
+                        </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
-
-    <div style="text-align:right;margin-bottom:10px;">
-        <button class="btn">Export</button>
-    </div>
-
-    <table>
-        <thead>
-            <tr>
-                <th>ID Pesanan</th>
-                <th>Nomor Pesanan</th>
-                <th>Nama Pemesan</th>
-                <th>Status</th>
-                <th>Admin/Kasir</th>
-                <th>Aksi</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach ($orders as $order)
-            <tr>
-                <td>{{ $order->id }}</td>
-                <td>{{ $order->no_order }}</td>
-                <td>{{ $order->nama_pemesan }}</td>
-                <td>{{ ucfirst($order->status) }}</td>
-                <td>-</td>
-                <td>
-                    @if ($order->status === 'menunggu')
-                        <button class="btn"
-                            onclick="updateStatus({{ $order->id }}, 'diproses')">
-                            Proses
-                        </button>
-                    @elseif ($order->status === 'diproses')
-                        <button class="btn"
-                            onclick="updateStatus({{ $order->id }}, 'selesai')">
-                            Selesai
-                        </button>
-                    @else
-                        ✔
-                    @endif
-                </td>
-            </tr>
-            @endforeach
-        </tbody>
-    </table>
-
 </div>
-
-<script>
-function updateStatus(id, status) {
-    if (!confirm('Ubah status pesanan?')) return;
-
-    fetch(/orders/${id}/status, {
-        method: 'PUT',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document
-                .querySelector('meta[name="csrf-token"]').content
-        },
-        body: JSON.stringify({ status })
-    })
-    .then(res => res.json())
-    .then(data => {
-        alert(data.message);
-        location.reload();
-    });
-}
-</script>
-
-</body>
-</html>
+@endsection

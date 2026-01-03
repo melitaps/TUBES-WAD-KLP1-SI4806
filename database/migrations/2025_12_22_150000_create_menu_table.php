@@ -21,6 +21,7 @@ return new class extends Migration
             $table->string('nama_menu');
             $table->integer('harga');
             $table->text('deskripsi')->nullable();
+            $table->string('image')->nullable();
 
             $table->timestamps();
         });

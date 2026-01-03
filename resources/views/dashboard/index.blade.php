@@ -1,23 +1,24 @@
 @extends('layouts.app')
 
 @section('content')
-<h4>Dashboard</h4>
+<div class="text-center mb-5">
+    <h2 class="fw-bold">Dashboard Statistik</h2>
+</div>
 
-<div class="row mt-3">
-    <div class="col-md-3">
-        <div class="card text-bg-primary">
-            <div class="card-body">
-                <h6>Total Pesanan</h6>
-                <h3>{{ $totalOrder }}</h3>
+<div class="row g-4">
+    <div class="col-md-6">
+        <div class="card card-custom p-4">
+            <div class="card-body text-center">
+                <h6 class="text-muted mb-2">Total Pesanan</h6>
+                <h1 class="fw-bold text-success">{{ $totalOrder }}</h1>
             </div>
         </div>
     </div>
-
-    <div class="col-md-3">
-        <div class="card text-bg-success">
-            <div class="card-body">
-                <h6>Pendapatan</h6>
-                <h3>Rp {{ number_format($pendapatan) }}</h3>
+    <div class="col-md-6">
+        <div class="card card-custom p-4">
+            <div class="card-body text-center">
+                <h6 class="text-muted mb-2">Total Pendapatan</h6>
+                <h1 class="fw-bold text-success">Rp {{ number_format($pendapatan, 0, ',', '.') }}</h1>
             </div>
         </div>
     </div>

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Customer;
 
 use App\Http\Controllers\Controller;
 use App\Models\Order;
@@ -12,37 +12,69 @@ use App\Models\Wilayah;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
-class CustomerController extends Controller
+class CustomerOrderController extends Controller
 {
-    public function index(Request $request)
+    /**
+     * Show menu page for customers
+     */
+    public function menu()
     {
-
-        $query = Customer::with('wilayah');
-
-
-        if ($request->has('search')) {
-            $search = $request->get('search');
-            $query->where('nama', 'like', "%{$search}%")
-                  ->orWhere('no_hp', 'like', "%{$search}%")
-                  ->orWhere('id', 'like', "%{$search}%");
-        }
-
-        $customers = $query->latest()->get();
+        $menu = Menu::with('kategori')->get();
+        $kategori = Kategori::all();
         
-
-        $totalPelanggan = Customer::count();
-
-        if ($request->expectsJson()) {
-            return response()->json([
-                'status' => 'success',
-                'total' => $totalPelanggan,
-                'data' => $customers
-            ]);
-        }
-
-        return view('customers.index', compact('customers', 'totalPelanggan'));
+        return view('customer.menu', compact('menu', 'kategori'));
+    }
+    
+    /**
+     * Show cart page
+     */
+    public function cart()
+    {
+        return view('customer.cart');
+    }
+    
+    /**
+     * Show checkout page
+     */
+    public function checkout()
+    {
+        return view('customer.checkout');
     }
 
+    /**
+     * Create or update customer record in "Manajemen Pelanggan"
+     */
+    private function createOrUpdateCustomer($orderData, $order)
+    {
+        // Find customer by phone number (unique identifier)
+        $customer = Customer::where('no_hp', $orderData['no_hp'])->first();
+        
+        if ($customer) {
+            // Update existing customer
+            $customer->update([
+                'total_pesanan' => $customer->total_pesanan + 1,
+                'total_transaksi' => $customer->total_transaksi + $orderData['total_harga']
+            ]);
+        } else {
+            // Create new customer record
+            // Try to find or create a default wilayah
+            $wilayah = $this->getOrCreateWilayah($orderData['alamat']);
+            
+            Customer::create([
+                'nama' => $orderData['nama_pemesan'],
+                'no_hp' => $orderData['no_hp'],
+                'alamat' => $orderData['alamat'],
+                'wilayah_id' => $wilayah->id,
+                'total_pesanan' => 1,
+                'total_transaksi' => $orderData['total_harga']
+            ]);
+        }
+    }
+    
+    /**
+     * Store new order
+     * AUTO-CREATE CUSTOMER RECORD if first order
+     */
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -103,54 +135,11 @@ class CustomerController extends Controller
             ], 500);
         }
     }
-
-    private function createOrUpdateCustomer($orderData, $order)
-    {
-        // Find customer by phone number (unique identifier)
-        $customer = Customer::where('no_hp', $orderData['no_hp'])->first();
-        
-        if ($customer) {
-            // Update existing customer
-            $customer->update([
-                'total_pesanan' => $customer->total_pesanan + 1,
-                'total_transaksi' => $customer->total_transaksi + $orderData['total_harga']
-            ]);
-        } else {
-            // Create new customer record
-            // Try to find or create a default wilayah
-            $wilayah = $this->getOrCreateWilayah($orderData['alamat']);
-            
-            Customer::create([
-                'nama' => $orderData['nama_pemesan'],
-                'no_hp' => $orderData['no_hp'],
-                'alamat' => $orderData['alamat'],
-                'wilayah_id' => $wilayah->id,
-                'total_pesanan' => 1,
-                'total_transaksi' => $orderData['total_harga']
-            ]);
-        }
-    }
-
-    public function update(Request $request, $id)
-    {
-        $customer = Customer::findOrFail($id);
-
-        $rules = [
-            'nama'       => 'sometimes|required|string',
-            'no_hp'      => 'sometimes|required|numeric',
-            'wilayah_id' => 'sometimes|required|exists:wilayah,id',
-        ];
-
-        $request->validate($rules);
-        $customer->update($request->all());
-
-        if ($request->expectsJson()) {
-            return response()->json(['message' => 'Data diperbarui', 'data' => $customer]);
-        }
-
-        return redirect()->route('customers.index')->with('success', 'Data berhasil diupdate.');
-    }
-
+    
+    /**
+     * Get or create wilayah (region) for customer
+     * You can improve this with address parsing or let admin update later
+     */
     private function getOrCreateWilayah($alamat)
     {
         // Try to find existing "Tidak Diketahui" wilayah
@@ -166,22 +155,32 @@ class CustomerController extends Controller
         
         return $wilayah;
     }
-
-    public function destroy($id)
+    
+    /**
+     * Show customer orders
+     */
+    public function orders()
     {
-        $customer = Customer::findOrFail($id);
-        $customer->delete();
-
-        if (request()->expectsJson()) {
-            return response()->json(['message' => 'Customer berhasil dihapus']);
-        }
-
-        return redirect()->back()->with('success', 'Customer dihapus.');
+        $orders = Order::with(['orderDetails.menu'])
+            ->where('nama_pemesan', auth()->user()->name)
+            ->latest()
+            ->get();
+        
+        return view('customer.orders', compact('orders'));
     }
-
-    public function export(Request $request)
+    
+    /**
+     * Show order detail
+     */
+    public function show($id)
     {
-        $type = $request->get('type');
-        return response()->json(['message' => "Fitur export $type segera hadir!"]);
+        $order = Order::with(['orderDetails.menu'])->findOrFail($id);
+        
+        // Check if order belongs to current user (for security)
+        if ($order->nama_pemesan !== auth()->user()->name && auth()->user()->role !== 'admin') {
+            abort(403, 'Unauthorized access to this order');
+        }
+        
+        return view('customer.order-detail', compact('order'));
     }
 }

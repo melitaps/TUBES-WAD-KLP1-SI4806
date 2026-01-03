@@ -38,4 +38,9 @@ class OrderController extends Controller
 
         return $order->load('details.menu');
     }
+
+        public function details()
+    {
+        return $this->hasMany(OrderDetail::class);
+    }
 }

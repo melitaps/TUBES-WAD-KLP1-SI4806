@@ -15,6 +15,7 @@ class Menu extends Model
         'harga',
         'deskripsi',
         'kategori_id',
+        'image',
     ];
 
     //menu belongsTo kategori//

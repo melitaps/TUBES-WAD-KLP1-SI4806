@@ -75,6 +75,6 @@ class RegisterController extends Controller
                 'user' => $user,
                 'token' => $token
             ]
-            ], 301);
+            ], 201);
     }
 }

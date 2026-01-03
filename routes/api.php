@@ -20,8 +20,6 @@ Route::prefix('auth')->group(function () {
 Route::post('/register', [RegisterController::class, 'registerApi']);
 Route::post('/login', [LoginController::class, 'loginApi']);
 });
-
-
 /**
  * 
  * protected routes, only accessible with valid token
@@ -43,9 +41,7 @@ Route::middleware('auth:sanctum')->group(function () {
     /**
      * HARI LIBUR NASIONAL
      */
-    Route::get('/holidays', [HolidayController::class, 'index']);
-   
-    
+    Route::get('/holidays', [HolidayController::class, 'index']); 
   //menu
     Route::get('/menu', [MenuController::class, 'index']);
     Route::post('/menu', [MenuController::class, 'store']);
@@ -55,7 +51,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
 
     //customer
-    Route::apiResource('customers', CustomerController::class);
+   // Route::apiResource('customers', CustomerController::class);
     
     //status order dr admin
     Route::put('/orders/{id}/status', [OrderStatusController::class, 'updateStatus']);

@@ -46,7 +46,7 @@ class OrdersReportExport implements FromCollection, WithHeadings, WithMapping
 
         return [
             $order->id,
-            $order->nama_customer,
+            $order->nama_pemesan,
             $items,
             $order->total_harga,
             $order->status
