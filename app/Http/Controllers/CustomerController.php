@@ -2,36 +2,42 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
+// Import Model yang dibutuhkan
 use App\Models\Order;
 use App\Models\OrderDetail;
-use App\Models\Menu;
-use App\Models\Kategori;
 use App\Models\Customer;
 use App\Models\Wilayah;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+// Import Facade DomPDF untuk proses pembuatan PDF
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class CustomerController extends Controller
 {
+    /**
+     * MENAMPILKAN DAFTAR PELANGGAN
+     */
     public function index(Request $request)
     {
-
+        // Mengambil data customer beserta relasi wilayahnya (Eager Loading)
         $query = Customer::with('wilayah');
 
-
+        // Fitur Pencarian: Jika ada input 'search', cari di kolom nama, no_hp, atau ID
         if ($request->has('search')) {
             $search = $request->get('search');
-            $query->where('nama', 'like', "%{$search}%")
+            $query->where(function ($q) use ($search) {
+                $q->where('nama', 'like', "%{$search}%")
                   ->orWhere('no_hp', 'like', "%{$search}%")
                   ->orWhere('id', 'like', "%{$search}%");
+            });
         }
 
+        // Urutkan dari yang terbaru dan ambil datanya
         $customers = $query->latest()->get();
-        
-
+        // Menghitung total seluruh pelanggan untuk ditampilkan di dashboard
         $totalPelanggan = Customer::count();
 
+        // Cek jika request meminta format JSON (biasanya untuk API)
         if ($request->expectsJson()) {
             return response()->json([
                 'status' => 'success',
@@ -40,148 +46,102 @@ class CustomerController extends Controller
             ]);
         }
 
+        // Tampilkan halaman web dengan mengirimkan data customers dan totalPelanggan
         return view('customers.index', compact('customers', 'totalPelanggan'));
     }
 
+    /**
+     * MENYIMPAN DATA PELANGGAN BARU
+     */
     public function store(Request $request)
     {
+        // Validasi input: memastikan semua data wajib diisi dan sesuai aturan
         $validated = $request->validate([
-            'nama_pemesan' => 'required|string',
+            'nama' => 'required|string',
             'no_hp' => 'required|string',
             'alamat' => 'required|string',
-            'metode_pembayaran' => 'required|string',
-            'catatan_tambahan' => 'nullable|string',
-            'total_harga' => 'required|numeric',
-            'items' => 'required|json'
+            'wilayah_id' => 'required|exists:wilayah,id' // Harus ada di tabel wilayah
         ]);
-        
-        DB::beginTransaction();
-        
-        try {
-            // Create order
-            $order = Order::create([
-                'nama_pemesan' => $validated['nama_pemesan'],
-                'no_hp' => $validated['no_hp'],
-                'alamat' => $validated['alamat'],
-                'metode_pembayaran' => $validated['metode_pembayaran'],
-                'catatan_tambahan' => $validated['catatan_tambahan'],
-                'total_harga' => $validated['total_harga'],
-                'status' => 'menunggu'
-            ]);
-            
-            // Create order details
-            $items = json_decode($validated['items'], true);
-            foreach ($items as $item) {
-                OrderDetail::create([
-                    'order_id' => $order->id,
-                    'menu_id' => $item['id'],
-                    'jumlah' => $item['quantity'],
-                    'harga' => $item['price'],
-                    'subtotal' => $item['price'] * $item['quantity']
-                ]);
-            }
-            
-            // ============================================
-            // AUTO-CREATE OR UPDATE CUSTOMER RECORD
-            // ============================================
-            $this->createOrUpdateCustomer($validated, $order);
-            
-            DB::commit();
-            
-            return response()->json([
-                'success' => true,
-                'order_no' => $order->no_order,
-                'message' => 'Pesanan berhasil dibuat'
-            ]);
-            
-        } catch (\Exception $e) {
-            DB::rollBack();
-            
-            return response()->json([
-                'success' => false,
-                'message' => 'Gagal membuat pesanan: ' . $e->getMessage()
-            ], 500);
-        }
+
+        // Proses input data ke database menggunakan Mass Assignment
+        Customer::create([
+            'nama' => $validated['nama'],
+            'no_hp' => $validated['no_hp'],
+            'alamat' => $validated['alamat'],
+            'wilayah_id' => $validated['wilayah_id'],
+            'total_pesanan' => 0, // Default awal 0
+            'total_transaksi' => 0
+        ]);
+
+        // Redirect kembali ke halaman index dengan pesan sukses
+        return redirect()->route('customers.index')->with('success', 'Pelanggan berhasil ditambahkan');
     }
 
-    private function createOrUpdateCustomer($orderData, $order)
-    {
-        // Find customer by phone number (unique identifier)
-        $customer = Customer::where('no_hp', $orderData['no_hp'])->first();
-        
-        if ($customer) {
-            // Update existing customer
-            $customer->update([
-                'total_pesanan' => $customer->total_pesanan + 1,
-                'total_transaksi' => $customer->total_transaksi + $orderData['total_harga']
-            ]);
-        } else {
-            // Create new customer record
-            // Try to find or create a default wilayah
-            $wilayah = $this->getOrCreateWilayah($orderData['alamat']);
-            
-            Customer::create([
-                'nama' => $orderData['nama_pemesan'],
-                'no_hp' => $orderData['no_hp'],
-                'alamat' => $orderData['alamat'],
-                'wilayah_id' => $wilayah->id,
-                'total_pesanan' => 1,
-                'total_transaksi' => $orderData['total_harga']
-            ]);
-        }
-    }
-
+    /**
+     * MENGUBAH DATA PELANGGAN
+     */
     public function update(Request $request, $id)
     {
+        // Cari data pelanggan berdasarkan ID, jika tidak ada maka otomatis error 404
         $customer = Customer::findOrFail($id);
 
-        $rules = [
-            'nama'       => 'sometimes|required|string',
-            'no_hp'      => 'sometimes|required|numeric',
+        // Validasi data yang akan diubah (sometimes berarti divalidasi jika datanya dikirim)
+        $request->validate([
+            'nama' => 'sometimes|required|string',
+            'no_hp' => 'sometimes|required|string',
             'wilayah_id' => 'sometimes|required|exists:wilayah,id',
-        ];
+            'alamat' => 'sometimes|required|string',
+        ]);
 
-        $request->validate($rules);
+        // Update data di database
         $customer->update($request->all());
 
-        if ($request->expectsJson()) {
-            return response()->json(['message' => 'Data diperbarui', 'data' => $customer]);
-        }
-
-        return redirect()->route('customers.index')->with('success', 'Data berhasil diupdate.');
+        return redirect()->route('customers.index')
+            ->with('success', 'Data customer berhasil diupdate');
     }
 
-    private function getOrCreateWilayah($alamat)
-    {
-        // Try to find existing "Tidak Diketahui" wilayah
-        $wilayah = Wilayah::where('kota_kabupaten', 'Belum Diketahui')->first();
-        
-        if (!$wilayah) {
-            // Create default wilayah if not exists
-            $wilayah = Wilayah::create([
-                'provinsi' => 'Indonesia',
-                'kota_kabupaten' => 'Belum Diketahui'
-            ]);
-        }
-        
-        return $wilayah;
-    }
-
+    /**
+     * MENGHAPUS DATA PELANGGAN
+     */
     public function destroy($id)
     {
-        $customer = Customer::findOrFail($id);
-        $customer->delete();
-
-        if (request()->expectsJson()) {
-            return response()->json(['message' => 'Customer berhasil dihapus']);
-        }
-
-        return redirect()->back()->with('success', 'Customer dihapus.');
+        // Cari data lalu hapus
+        Customer::findOrFail($id)->delete();
+        return redirect()->back()->with('success', 'Customer berhasil dihapus');
     }
 
+    /**
+     * FITUR EXPORT PDF
+     */
     public function export(Request $request)
     {
-        $type = $request->get('type');
-        return response()->json(['message' => "Fitur export $type segera hadir!"]);
+        $query = Customer::with('wilayah');
+
+        // Pastikan hasil export sesuai dengan pencarian yang sedang aktif
+        if ($request->has('search') && $request->search != '') {
+            $search = $request->get('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('nama', 'like', "%{$search}%")
+                  ->orWhere('no_hp', 'like', "%{$search}%");
+            });
+        }
+
+        $customers = $query->latest()->get();
+
+        // Validasi tipe export: mendownload PDF jika parameternya sesuai
+        if ($request->type == 'pdf' || $request->type == 'excel') { 
+            
+            // 1. Memuat file view 'export-pdf' dan mengirimkan data $customers
+            $pdf = Pdf::loadView('customers.export-pdf', compact('customers'))
+                      // 2. Mengatur ukuran kertas menjadi A4 dan posisi Portrait
+                      ->setPaper('a4', 'portrait');
+
+            // 3. Memberikan perintah download dengan nama file yang mengandung tanggal hari ini
+            return $pdf->download(
+                'data-customers-' . now()->format('d-m-Y') . '.pdf'
+            );
+        }
+
+        return redirect()->back()->with('error', 'Tipe export tidak didukung');
     }
 }
