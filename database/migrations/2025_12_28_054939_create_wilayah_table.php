@@ -9,9 +9,8 @@ return new class extends Migration {
     {
         Schema::create('wilayah', function (Blueprint $table) {
             $table->id();
-            $table->string('provinsi')->index(); // Ditambah index
-            $table->string('kota_kabupaten')->index(); // Ditambah index
-            $table->timestamps();
+            $table->string('provinsi')->index();
+            $table->string('kota_kabupaten')->index();
         });
     }
 
