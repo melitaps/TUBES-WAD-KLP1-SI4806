@@ -30,6 +30,11 @@ class Order extends Model
         return $this->hasMany(OrderDetail::class);
     }
 
+    public function details()
+    {
+        return $this->hasMany(OrderDetail::class, 'order_id');
+    }
+
     /**
      * Auto-generate nomor order
      * Format: ORD-YYYYMMDD-0001

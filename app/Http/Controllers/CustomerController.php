@@ -2,28 +2,33 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Order;
+use App\Models\OrderDetail;
 use App\Models\Customer;
 use App\Models\Wilayah;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class CustomerController extends Controller
 {
+    /**
+     * MENAMPILKAN DAFTAR PELANGGAN
+     */
     public function index(Request $request)
     {
-
         $query = Customer::with('wilayah');
-
-
         if ($request->has('search')) {
             $search = $request->get('search');
-            $query->where('nama', 'like', "%{$search}%")
+            $query->where(function ($q) use ($search) {
+                $q->where('nama', 'like', "%{$search}%")
                   ->orWhere('no_hp', 'like', "%{$search}%")
                   ->orWhere('id', 'like', "%{$search}%");
+            });
         }
 
+
         $customers = $query->latest()->get();
-        
 
         $totalPelanggan = Customer::count();
 
@@ -35,79 +40,95 @@ class CustomerController extends Controller
             ]);
         }
 
+ 
         return view('customers.index', compact('customers', 'totalPelanggan'));
     }
 
+    /**
+     * MENYIMPAN DATA PELANGGAN BARU
+     */
     public function store(Request $request)
     {
-        $rules = [
-            'nama'       => 'required|string|max:255',
-            'no_hp'      => 'required|numeric',
-            'alamat'     => 'required|string',
-            'wilayah_id' => 'required|exists:wilayah,id',
-        ];
+        $validated = $request->validate([
+            'nama' => 'required|string',
+            'no_hp' => 'required|string',
+            'alamat' => 'required|string',
+            'wilayah_id' => 'required|exists:wilayah,id'
+        ]);
 
-        $validator = Validator::make($request->all(), $rules);
+        Customer::create([
+            'nama' => $validated['nama'],
+            'no_hp' => $validated['no_hp'],
+            'alamat' => $validated['alamat'],
+            'wilayah_id' => $validated['wilayah_id'],
+            'total_pesanan' => 0, 
+            'total_transaksi' => 0
+        ]);
 
-        if ($validator->fails()) {
-            if ($request->expectsJson()) {
-                return response()->json(['errors' => $validator->errors()], 422);
-            }
-            return redirect()->back()->withErrors($validator)->withInput();
-        }
-
-
-        $data = $request->all();
-        $data['total_pesanan'] = $request->total_pesanan ?? 0;
-        $data['total_transaksi'] = $request->total_transaksi ?? 0;
-
-        $customer = Customer::create($data);
-
-        if ($request->expectsJson()) {
-            return response()->json([
-                'message' => 'Customer berhasil disimpan!',
-                'data' => $customer
-            ], 201);
-        }
-
-        return redirect()->route('customers.index')->with('success', 'Data pelanggan berhasil ditambahkan.');
+   
+        return redirect()->route('customers.index')->with('success', 'Pelanggan berhasil ditambahkan');
     }
 
     public function update(Request $request, $id)
     {
         $customer = Customer::findOrFail($id);
 
-        $rules = [
-            'nama'       => 'sometimes|required|string',
-            'no_hp'      => 'sometimes|required|numeric',
+        $request->validate([
+            'nama' => 'sometimes|required|string',
+            'no_hp' => 'sometimes|required|string',
             'wilayah_id' => 'sometimes|required|exists:wilayah,id',
-        ];
+            'alamat' => 'sometimes|required|string',
+        ]);
 
-        $request->validate($rules);
         $customer->update($request->all());
 
-        if ($request->expectsJson()) {
-            return response()->json(['message' => 'Data diperbarui', 'data' => $customer]);
-        }
-
-        return redirect()->route('customers.index')->with('success', 'Data berhasil diupdate.');
+        return redirect()->route('customers.index')
+            ->with('success', 'Data customer berhasil diupdate');
     }
+
 
     public function destroy($id)
-    {
-        $customer = Customer::findOrFail($id);
-        $customer->delete();
+{
+    $customer = Customer::find($id);
 
-        if (request()->expectsJson()) {
-            return response()->json(['message' => 'Customer berhasil dihapus']);
-        }
-
-        return redirect()->back()->with('success', 'Customer dihapus.');
+    if (!$customer) {
+        return response()->json([
+            'message' => 'Customer tidak ditemukan'
+        ], 404);
     }
+
+    $customer->delete();
+
+    return response()->json([
+        'message' => 'Customer berhasil dihapus'
+    ], 200);
+}
+
 
     public function export(Request $request)
     {
-        $type = $request->get('type');
-        return response()->json(['message' => "Fitur export $type segera hadir!"]);
+        $query = Customer::with('wilayah');
+
+        if ($request->has('search') && $request->search != '') {
+            $search = $request->get('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('nama', 'like', "%{$search}%")
+                  ->orWhere('no_hp', 'like', "%{$search}%");
+            });
+        }
+
+        $customers = $query->latest()->get();
+
+        if ($request->type == 'pdf' || $request->type == 'excel') { 
+            
+            $pdf = Pdf::loadView('customers.export-pdf', compact('customers'))
+                      ->setPaper('a4', 'portrait');
+
+            return $pdf->download(
+                'data-customers-' . now()->format('d-m-Y') . '.pdf'
+            );
+        }
+
+        return redirect()->back()->with('error', 'Tipe export tidak didukung');
     }
 }

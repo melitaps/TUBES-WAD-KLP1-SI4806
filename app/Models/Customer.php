@@ -8,7 +8,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class Customer extends Model
 {
     protected $fillable = [
-        'nama', 'no_hp', 'alamat', 'wilayah_id', 'total_pesanan', 'total_transaksi'
+        'nama', 
+        'no_hp', 
+        'alamat', 
+        'wilayah_id', 
+        'total_pesanan', 
+        'total_transaksi'
     ];
 
     public function wilayah(): BelongsTo

@@ -63,4 +63,10 @@ class OrderStatusController extends Controller
             'status' => $order->status
         ]);
     }
+
+    public function show($id)
+    {
+        $order = Order::with(['orderDetails.menu'])->findOrFail($id);
+        return view('orders.detail', compact('order'));
+    }
 }
