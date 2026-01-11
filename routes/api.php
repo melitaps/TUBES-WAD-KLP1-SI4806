@@ -9,12 +9,11 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\OrderStatusController;
 use App\Http\Controllers\HolidayController;
 use App\Http\Controllers\ReportController;
-
-/*
-|--------------------------------------------------------------------------
-| AUTH ROUTES (PUBLIC)
-|--------------------------------------------------------------------------
-*/
+use App\Http\Controllers\Customer\CustomerOrderController;
+/**
+ * 
+ * unprotected routes for user registration and login
+ */
 Route::prefix('auth')->group(function () {
     Route::post('/register', [RegisterController::class, 'registerApi']);
     Route::post('/login', [LoginController::class, 'loginApi']);
@@ -29,23 +28,30 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // logout
     Route::post('/logout', [LoginController::class, 'logoutApi']);
-
-    // ======================
-    // CUSTOMER MANAGEMENT
-    // ======================
-    Route::apiResource('customers', CustomerController::class);
-
-    // ======================
-    // MENU
-    // ======================
-    Route::apiResource('menu', MenuController::class);
-
-    // ======================
-    // ORDERS
-    // ======================
-    Route::get('/orders', [OrderController::class, 'index']);
+     /**
+     * ORDER - MENU 3
+     */
+  
+    Route::get('/orders', [CustomerOrderController::class, 'index']);
     Route::post('/orders', [OrderController::class, 'store']);
     Route::get('/orders/{id}', [OrderController::class, 'show']);
+
+    /**
+     * HARI LIBUR NASIONAL
+     */
+    Route::get('/holidays', [HolidayController::class, 'index']); 
+  //menu
+    Route::get('/menu', [MenuController::class, 'index']);
+    Route::post('/menu', [MenuController::class, 'store']);
+    Route::get('/menu/{id}', [MenuController::class, 'show']);
+    Route::put('/menu/{id}', [MenuController::class, 'update']);
+    Route::delete('/menu/{id}', [MenuController::class, 'destroy']);
+
+
+    //customer
+    Route::apiResource('customers', CustomerController::class);
+    
+    //status order dr admin
     Route::put('/orders/{id}/status', [OrderStatusController::class, 'updateStatus']);
 
     // ======================

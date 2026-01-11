@@ -75,6 +75,6 @@ Route::middleware('auth')->group(function () {
     // ====================
     // ADMIN - REPORTS
     // ====================
-    Route::get('/reports/export', [ReportController::class, 'export'])->name('reports.export');
+    Route::get('/reports/export', [ReportController::class, 'exportPDF'])->name('reports.export');
     Route::get('/reports', [ReportController::class, 'indexWeb'])->name('reports.index');
 });

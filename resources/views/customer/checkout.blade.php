@@ -23,7 +23,7 @@
                         
                         <div class="mb-3">
                             <label class="form-label">Nomor HP <span class="text-danger">*</span></label>
-                            <input type="text" name="no_hp" class="form-control" placeholder="08xxxxxxxxxx" required>
+                            <input type="tel" name="no_hp" class="form-control" placeholder="08xxxxxxxxxx" required>
                         </div>
                         
                         <div class="mb-3">

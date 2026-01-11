@@ -81,6 +81,9 @@
                                     <option value="diproses" {{ $order->status == 'diproses' ? 'selected' : '' }} class="bg-info">Diproses</option>
                                     <option value="selesai" {{ $order->status == 'selesai' ? 'selected' : '' }} class="bg-success">Selesai</option>
                                 </select>
+                                <a href="{{ route('reports.export') }}" class="btn btn-nra-outline flex-fill">
+                        <i class="bi bi-download"></i> Export PDF
+                        </a>
                             </div>
                         </div>
                     </div>

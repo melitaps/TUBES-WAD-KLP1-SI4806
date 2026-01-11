@@ -42,9 +42,6 @@
                                 <a href="{{ url('/orders/'.$order->id) }}" class="btn btn-success btn-sm">
                                     <i class="bi bi-eye"></i> Detail
                                 </a>
-                                <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editModal{{ $order->id }}">
-                                    <i class="bi bi-pencil"></i> Edit
-                                </button>
                             </td>
                         </tr>
                         @empty
