@@ -56,7 +56,6 @@ Route::middleware('auth')->group(function () {
     // ====================
     // ADMIN - MENU
     // ====================
-    // PERBAIKAN: Tambahkan rute export MENU di sini (sebelum rute dinamis)
     Route::get('/menu/export', [MenuController::class, 'export'])->name('menu.export');
     
     Route::get('/menu', [MenuController::class, 'halamanMenu'])->name('menu.index');
@@ -67,7 +66,6 @@ Route::middleware('auth')->group(function () {
     // ====================
     // ADMIN - CUSTOMERS
     // ====================
-    // PERBAIKAN: Pindahkan rute EXPORT ke ATAS resource
     Route::get('/customers/export', [CustomerController::class, 'export'])
         ->name('customers.export');
 
