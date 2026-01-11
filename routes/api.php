@@ -1,15 +1,13 @@
-
 <?php
 
-use App\Http\Controllers\CustomerController;
-use Illuminate\Http\Request;
-use App\Http\Controllers\MenuController;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\OrderStatusController;
-use App\Http\Controllers\OrderController;
-use App\Http\Controllers\HolidayController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\MenuController;
+use App\Http\Controllers\OrderController;
+use App\Http\Controllers\OrderStatusController;
+use App\Http\Controllers\HolidayController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\Customer\CustomerOrderController;
 /**
@@ -17,19 +15,18 @@ use App\Http\Controllers\Customer\CustomerOrderController;
  * unprotected routes for user registration and login
  */
 Route::prefix('auth')->group(function () {
-Route::post('/register', [RegisterController::class, 'registerApi']);
-Route::post('/login', [LoginController::class, 'loginApi']);
+    Route::post('/register', [RegisterController::class, 'registerApi']);
+    Route::post('/login', [LoginController::class, 'loginApi']);
 });
-/**
- * 
- * protected routes, only accessible with valid token
- */
 
+/*
+|--------------------------------------------------------------------------
+| PROTECTED ROUTES (SANCTUM)
+|--------------------------------------------------------------------------
+*/
 Route::middleware('auth:sanctum')->group(function () {
-    /**
-     * 
-     * User logout route
-     */
+
+    // logout
     Route::post('/logout', [LoginController::class, 'logoutApi']);
      /**
      * ORDER - MENU 3
@@ -57,7 +54,13 @@ Route::middleware('auth:sanctum')->group(function () {
     //status order dr admin
     Route::put('/orders/{id}/status', [OrderStatusController::class, 'updateStatus']);
 
-    //laporan
-   Route::get('/reports', [ReportController::class, 'index']);
+    // ======================
+    // HOLIDAYS
+    // ======================
+    Route::get('/holidays', [HolidayController::class, 'index']);
 
+    // ======================
+    // REPORTS
+    // ======================
+    Route::get('/reports', [ReportController::class, 'index']);
 });

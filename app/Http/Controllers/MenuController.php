@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use App\Models\Menu;
 use App\Models\Kategori;
+use Illuminate\Support\Facades\Storage; // Pastikan ini ada untuk delete image
+use Barryvdh\DomPDF\Facade\Pdf; // TAMBAHKAN INI UNTUK PDF
 
 class MenuController extends Controller
 {
@@ -75,7 +77,7 @@ class MenuController extends Controller
         if ($request->hasFile('image')) {
             // Delete old image if exists
             if ($menu->image) {
-                \Storage::disk('public')->delete($menu->image);
+                Storage::disk('public')->delete($menu->image);
             }
             
             $imagePath = $request->file('image')->store('menu-images', 'public');
@@ -94,5 +96,21 @@ class MenuController extends Controller
 
         return redirect()->route('menu.index')
             ->with('success', 'Menu berhasil dihapus');
+    }
+
+    /**
+     * FITUR TAMBAHAN: EXPORT PDF
+     */
+    public function export()
+    {
+        // Mengambil semua data menu beserta kategorinya
+        $menus = Menu::with('kategori')->get();
+
+        // Load view khusus export dan kirim data $menus
+        $pdf = Pdf::loadView('menu.export-pdf', compact('menus'))
+                  ->setPaper('a4', 'portrait');
+
+        // Download file PDF
+        return $pdf->download('daftar-menu-' . date('d-m-Y') . '.pdf');
     }
 }
