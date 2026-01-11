@@ -24,9 +24,11 @@
         @endguest
         
         @auth
-        <a href="{{ url('/orders') }}" class="btn btn-nra-primary btn-lg mt-4">
-            <i class="bi bi-speedometer2"></i> Lihat Dashboard
-        </a>
+            @if(auth()->user()->role === 'admin')
+                <a href="{{ url('/orders') }}" class="btn btn-nra-primary btn-lg mt-4">
+                    <i class="bi bi-speedometer2"></i> Lihat Dashboard
+                </a>
+            @endif
         @endauth
     </div>
 </div>

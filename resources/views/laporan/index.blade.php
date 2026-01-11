@@ -41,16 +41,14 @@
                         @endfor
                     </select>
                 </div>
-                <div class="col-md-3">
-                    <input type="date" name="date" class="form-control" value="{{ $date ?? '' }}">
-                </div>
-                <div class="col-md-3">
-                    <div class="d-flex gap-2">
+                <div class="col-md-6">
+                    <div class="d-flex gap-3">
                         <button type="submit" class="btn btn-nra-primary flex-fill">
                             <i class="bi bi-filter"></i> Filter
                         </button>
-                        <a href="{{ route('reports.export', request()->all()) }}" class="btn btn-nra-outline flex-fill">
-                            <i class="bi bi-download"></i> Export
+                        <a href="{{ route('reports.export', ['year' => $year, 'month' => $month]) }}" class="btn btn-nra-outline flex-fill">
+                        <i class="bi bi-download"></i> Export PDF
+                        </a>
                         </a>
                     </div>
                 </div>
@@ -68,26 +66,31 @@
                         <tr>
                             <th>ID Pelanggan</th>
                             <th>Nama</th>
-                            <th>Nomor HP</th>
-                            <th>Alamat</th>
-                            <th>Aksi</th>
+                            <th>Pesanan</th>
+                            <th>Tanggal</th>
+                            <th>Total Harga</th>
+                            <th>Status</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @forelse($orders as $order)
+                    @forelse($orders as $order)
                         <tr>
                             <td><strong>C{{ str_pad($order->id, 4, '0', STR_PAD_LEFT) }}</strong></td>
                             <td>{{ $order->nama_pemesan }}</td>
-                            <td>{{ $order->no_hp ?? '082111444555' }}</td>
-                            <td>{{ $order->alamat ?? 'Jalan Sukabirus' }}</td>
                             <td>
-                                <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#detailModal{{ $order->id }}">
-                                    <i class="bi bi-eye"></i> Detail
-                                </button>
-                                <button class="btn btn-warning btn-sm">
-                                    <i class="bi bi-pencil"></i> Edit
-                                </button>
+                                @foreach($order->items as $item)
+                                    {{ $item->nama_menu }} ({{ $item->jumlah }}x)
+                                    @if(!$loop->last), @endif
+                                @endforeach
                             </td>
+                            <td>{{ date('d/m/Y H:i', strtotime($order->created_at)) }}</td>
+                            <td class="text-right"><strong>Rp{{ number_format($order->total_harga, 0, ',', '.') }}</strong></td>
+                            <td>
+                                <span class="badge badge-{{ strtolower($order->status) }}">
+                                    {{ ucfirst($order->status) }}
+                                </span>
+                            </td>
+                        </tr>
                         </tr>
                         @empty
                         <tr>

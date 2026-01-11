@@ -104,12 +104,6 @@
                                             Rp{{ number_format($order->orderDetails->sum('subtotal'), 0, ',', '.') }}
                                         </td>
                                     </tr>
-                                    <tr class="table-light">
-                                        <td colspan="3" class="text-end fw-bold">Pajak (10%)</td>
-                                        <td class="text-end fw-bold">
-                                            Rp{{ number_format($order->orderDetails->sum('subtotal') * 0.1, 0, ',', '.') }}
-                                        </td>
-                                    </tr>
                                     <tr class="table-success">
                                         <td colspan="3" class="text-end fw-bold fs-5">Total</td>
                                         <td class="text-end fw-bold fs-5" style="color: var(--nra-green);">
@@ -125,7 +119,7 @@
                     <div class="mb-4">
                         <label class="text-muted small mb-3">Status Pesanan</label>
                         <div class="timeline">
-                            <div class="timeline-item {{ $order->status == 'menunggu' || $order->status == 'diproses' || $order->status == 'selesai' ? 'active' : '' }}">
+                            <div class="timeline-item {{ in_array($order->status, ['menunggu','diproses','selesai']) ? 'active' : '' }}">
                                 <div class="timeline-marker">
                                     <i class="bi bi-check-circle-fill"></i>
                                 </div>
@@ -134,13 +128,12 @@
                                     <small class="text-muted">{{ $order->created_at->format('d/m/Y H:i') }}</small>
                                 </div>
                             </div>
-                            <div class="timeline-item {{ $order->status == 'diproses' || $order->status == 'selesai' ? 'active' : '' }}">
+                            <div class="timeline-item {{ in_array($order->status, ['diproses','selesai']) ? 'active' : '' }}">
                                 <div class="timeline-marker">
-                                    <i class="bi bi-{{ $order->status == 'diproses' || $order->status == 'selesai' ? 'check-circle-fill' : 'circle' }}"></i>
+                                    <i class="bi bi-{{ in_array($order->status, ['diproses','selesai']) ? 'check-circle-fill' : 'circle' }}"></i>
                                 </div>
                                 <div class="timeline-content">
                                     <h6 class="mb-1">Sedang Diproses</h6>
-                                    <small class="text-muted">Pesanan sedang disiapkan</small>
                                 </div>
                             </div>
                             <div class="timeline-item {{ $order->status == 'selesai' ? 'active' : '' }}">
@@ -159,7 +152,13 @@
                         <a href="{{ route('customer.orders') }}" class="btn btn-nra-primary btn-lg flex-fill">
                             <i class="bi bi-arrow-left"></i> Kembali ke Daftar Pesanan
                         </a>
+                        <a href="{{ route('customers.export', $order->id) }}"
+                               target="_blank"
+                               class="btn btn-success btn-lg flex-fill">
+                                <i class="bi bi-printer"></i> Cetak Nota
+                        </a>
                     </div>
+
                 </div>
             </div>
         </div>
@@ -168,58 +167,43 @@
 
 @push('styles')
 <style>
-    /* Timeline Styles */
-    .timeline {
-        position: relative;
-        padding-left: 30px;
-    }
-
-    .timeline::before {
-        content: '';
-        position: absolute;
-        left: 12px;
-        top: 0;
-        bottom: 0;
-        width: 2px;
-        background: #dee2e6;
-    }
-
-    .timeline-item {
-        position: relative;
-        padding-bottom: 30px;
-        opacity: 0.5;
-    }
-
-    .timeline-item.active {
-        opacity: 1;
-    }
-
-    .timeline-item:last-child {
-        padding-bottom: 0;
-    }
-
-    .timeline-marker {
-        position: absolute;
-        left: -23px;
-        width: 26px;
-        height: 26px;
-        border-radius: 50%;
-        background: white;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 20px;
-        color: #dee2e6;
-    }
-
-    .timeline-item.active .timeline-marker {
-        color: var(--nra-green);
-    }
-
-    .timeline-content h6 {
-        font-weight: 600;
-        margin-bottom: 5px;
-    }
+.timeline {
+    position: relative;
+    padding-left: 30px;
+}
+.timeline::before {
+    content: '';
+    position: absolute;
+    left: 12px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #dee2e6;
+}
+.timeline-item {
+    position: relative;
+    padding-bottom: 30px;
+    opacity: 0.5;
+}
+.timeline-item.active {
+    opacity: 1;
+}
+.timeline-marker {
+    position: absolute;
+    left: -23px;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    color: #dee2e6;
+}
+.timeline-item.active .timeline-marker {
+    color: var(--nra-green);
+}
 </style>
 @endpush
 @endsection

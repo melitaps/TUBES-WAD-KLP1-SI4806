@@ -3,11 +3,10 @@
 namespace App\Exports;
 
 use App\Models\Report;
-use Maatwebsite\Excel\Concerns\FromCollection;
-use Maatwebsite\Excel\Concerns\WithHeadings;
-use Maatwebsite\Excel\Concerns\WithMapping;
 
-class OrdersReportExport implements FromCollection, WithHeadings, WithMapping
+
+
+class OrdersReportExport 
 {
     protected $year;
     protected $month;

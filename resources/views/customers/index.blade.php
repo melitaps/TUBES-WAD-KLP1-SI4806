@@ -20,24 +20,27 @@
         <div class="card-body">
             <form method="GET" action="{{ route('customers.index') }}">
                 <div class="row align-items-center">
-                    <div class="col-md-6">
-                        <div class="input-group">
-                            <span class="input-group-text"><i class="bi bi-search"></i></span>
-                            <input type="text" name="search" class="form-control" placeholder="Cari pelanggan..." value="{{ request('search') }}">
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <select class="form-select" name="filter">
-                            <option value="">7 hari terakhir</option>
-                            <option value="30">30 hari terakhir</option>
-                            <option value="all">Semua waktu</option>
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="d-flex gap-2">
-                            <button type="submit" class="btn btn-nra-primary">
-                                <i class="bi bi-search"></i> Cari
-                            </button>
+                <div class="col-md-3">
+                    <select name="year" class="form-select">
+                        <option value="2024" {{ ($year ?? date('Y')) == 2024 ? 'selected' : '' }}>2024</option>
+                        <option value="2025" {{ ($year ?? date('Y')) == 2025 ? 'selected' : '' }}>2025</option>
+                        <option value="2026" {{ ($year ?? date('Y')) == 2026 ? 'selected' : '' }}>2026</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select name="month" class="form-select">
+                        @for($i = 1; $i <= 12; $i++)
+                        <option value="{{ $i }}" {{ ($month ?? date('n')) == $i ? 'selected' : '' }}>
+                            {{ date('F', mktime(0, 0, 0, $i, 1)) }}
+                        </option>
+                        @endfor
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <div class="d-flex gap-3">
+                        <button type="submit" class="btn btn-nra-primary flex-fill">
+                            <i class="bi bi-filter"></i> Filter
+                        </button>
                             <a href="{{ route('customers.export', ['type' => 'excel']) }}" class="btn btn-nra-outline flex-fill">
                                 <i class="bi bi-download"></i> Export
                             </a>
@@ -109,10 +112,6 @@
     </div>
 </div>
 
-<!-- ============================================ -->
-<!-- MODALS - OUTSIDE THE LOOP (NO FLICKERING!) -->
-<!-- ============================================ -->
-
 <!-- Detail Customer Modal - SINGLE INSTANCE -->
 <div class="modal fade" id="detailCustomerModal" tabindex="-1">
     <div class="modal-dialog">
@@ -160,7 +159,7 @@
     </div>
 </div>
 
-<!-- Edit Customer Modal - SINGLE INSTANCE -->
+<!-- Edit Customer Modal -->
 <div class="modal fade" id="editCustomerModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">

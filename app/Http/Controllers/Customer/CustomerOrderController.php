@@ -15,6 +15,11 @@ use Illuminate\Support\Facades\DB;
 class CustomerOrderController extends Controller
 {
     /**
+     * Maximum number of pending/processing orders allowed
+     */
+    const MAX_PENDING_ORDERS = 20;
+
+    /**
      * Show menu page for customers
      */
     public function menu()
@@ -22,7 +27,11 @@ class CustomerOrderController extends Controller
         $menu = Menu::with('kategori')->get();
         $kategori = Kategori::all();
         
-        return view('customer.menu', compact('menu', 'kategori'));
+        // Check if orders are still being accepted
+        $canOrder = $this->canAcceptNewOrders();
+        $pendingOrdersCount = $this->getPendingOrdersCount();
+        
+        return view('customer.menu', compact('menu', 'kategori', 'canOrder', 'pendingOrdersCount'));
     }
     
     /**
@@ -30,7 +39,11 @@ class CustomerOrderController extends Controller
      */
     public function cart()
     {
-        return view('customer.cart');
+        // Check if orders are still being accepted
+        $canOrder = $this->canAcceptNewOrders();
+        $pendingOrdersCount = $this->getPendingOrdersCount();
+        
+        return view('customer.cart', compact('canOrder', 'pendingOrdersCount'));
     }
     
     /**
@@ -38,7 +51,32 @@ class CustomerOrderController extends Controller
      */
     public function checkout()
     {
-        return view('customer.checkout');
+        // Check if orders are still being accepted
+        if (!$this->canAcceptNewOrders()) {
+            return redirect()->route('customer.menu')
+                ->with('error', 'Maaf, saat ini kami tidak dapat menerima pesanan baru. Maksimal ' . self::MAX_PENDING_ORDERS . ' pesanan sedang diproses.');
+        }
+        
+        $pendingOrdersCount = $this->getPendingOrdersCount();
+        
+        return view('customer.checkout', compact('pendingOrdersCount'));
+    }
+
+    /**
+     * Check if system can accept new orders
+     */
+    private function canAcceptNewOrders()
+    {
+        $pendingCount = $this->getPendingOrdersCount();
+        return $pendingCount < self::MAX_PENDING_ORDERS;
+    }
+    
+    /**
+     * Get count of pending/processing orders
+     */
+    private function getPendingOrdersCount()
+    {
+        return Order::whereIn('status', ['menunggu', 'diproses'])->count();
     }
 
     /**
@@ -77,9 +115,19 @@ class CustomerOrderController extends Controller
      */
     public function store(Request $request)
     {
+        // ============================================
+        // CHECK ORDER LIMIT BEFORE PROCESSING
+        // ============================================
+        if (!$this->canAcceptNewOrders()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Maaf, saat ini kami tidak dapat menerima pesanan baru. Maksimal ' . self::MAX_PENDING_ORDERS . ' pesanan sedang diproses. Silakan coba lagi nanti.'
+            ], 429); // 429 Too Many Requests
+        }
+        
         $validated = $request->validate([
             'nama_pemesan' => 'required|string',
-            'no_hp' => 'required|string',
+            'no_hp' => 'required|numeric',
             'alamat' => 'required|string',
             'metode_pembayaran' => 'required|string',
             'catatan_tambahan' => 'nullable|string',
@@ -90,6 +138,15 @@ class CustomerOrderController extends Controller
         DB::beginTransaction();
         
         try {
+            // Double-check inside transaction to prevent race conditions
+            if (!$this->canAcceptNewOrders()) {
+                DB::rollBack();
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Maaf, saat ini kami tidak dapat menerima pesanan baru. Maksimal ' . self::MAX_PENDING_ORDERS . ' pesanan sedang diproses.'
+                ], 429);
+            }
+            
             // Create order
             $order = Order::create([
                 'nama_pemesan' => $validated['nama_pemesan'],

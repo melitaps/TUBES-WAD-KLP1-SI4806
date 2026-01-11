@@ -52,11 +52,11 @@ Route::middleware('auth')->group(function () {
     Route::delete('/menu/{id}', [MenuController::class, 'destroy'])->name('menu.destroy');
     
     // Admin Routes - Customer Management
-    Route::resource('customers', CustomerController::class);
-    Route::get('/customers', [CustomerController::class, 'index'])->name('customers.index');
+    
+    Route::get('/customers', [CustomerController::class, 'indexWeb'])->name('customers.indexWeb');
     Route::get('/export-customers', [CustomerController::class, 'export'])->name('customers.export');
     
     // Admin Routes - Reports & Statistics
     Route::get('/reports', [ReportController::class, 'indexWeb'])->name('reports.index');
-    Route::get('/reports/export', [ReportController::class, 'export'])->name('reports.export');
+    Route::get('/reports/export', [ReportController::class, 'exportPDF'])->name('reports.export');
 });

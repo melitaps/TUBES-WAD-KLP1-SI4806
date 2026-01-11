@@ -40,6 +40,28 @@ class CustomerController extends Controller
             ]);
         }
 
+        
+    }
+
+        public function indexWeb(Request $request)
+    {
+
+        $query = Customer::with('wilayah');
+
+
+        if ($request->has('search')) {
+            $search = $request->get('search');
+            $query->where('nama', 'like', "%{$search}%")
+                  ->orWhere('no_hp', 'like', "%{$search}%")
+                  ->orWhere('id', 'like', "%{$search}%");
+        }
+
+        $customers = $query->latest()->get();
+        
+
+        $totalPelanggan = Customer::count();
+
+
         return view('customers.index', compact('customers', 'totalPelanggan'));
     }
 

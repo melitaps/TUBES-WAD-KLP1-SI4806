@@ -11,7 +11,7 @@ use App\Http\Controllers\HolidayController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\ReportController;
-
+use App\Http\Controllers\Customer\CustomerOrderController;
 /**
  * 
  * unprotected routes for user registration and login
@@ -34,7 +34,8 @@ Route::middleware('auth:sanctum')->group(function () {
      /**
      * ORDER - MENU 3
      */
-    Route::get('/orders', [OrderController::class, 'index']);
+  
+    Route::get('/orders', [CustomerOrderController::class, 'index']);
     Route::post('/orders', [OrderController::class, 'store']);
     Route::get('/orders/{id}', [OrderController::class, 'show']);
 
@@ -51,7 +52,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
 
     //customer
-   // Route::apiResource('customers', CustomerController::class);
+    Route::apiResource('customers', CustomerController::class);
     
     //status order dr admin
     Route::put('/orders/{id}/status', [OrderStatusController::class, 'updateStatus']);

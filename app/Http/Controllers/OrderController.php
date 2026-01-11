@@ -6,6 +6,7 @@ use App\Models\Order;
 use App\Models\OrderDetail;
 use Illuminate\Http\Request;
 
+
 class OrderController extends Controller
 {
     public function index()
@@ -30,9 +31,9 @@ class OrderController extends Controller
             OrderDetail::create([
                 'order_id' => $order->id,
                 'menu_id' => $item['menu_id'],
-                'jumlah' => $item['qty'],        
+                'jumlah' => $item['jumlah'],        
                 'harga' => $item['harga'],
-                'subtotal' => $item['qty'] * $item['harga']
+                'subtotal' => $item['jumlah'] * $item['harga']
     ]);
 }
 
