@@ -11,6 +11,7 @@ return new class extends Migration {
             $table->id();
             $table->string('provinsi')->index();
             $table->string('kota_kabupaten')->index();
+            $table->timestamps();
         });
     }
 
