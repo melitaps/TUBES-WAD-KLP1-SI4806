@@ -1,12 +1,5 @@
-[providers]
-    php = "php"
-
-[phases.build]
-    # Nixpacks automatically detects Laravel and runs `composer install` and `npm run build`
-    # We can add explicit commands if we want, but it's usually handled.
-
 [phases.setup]
-    nixPkgs = ["...", "php82", "php82Packages.composer", "nodejs_20"]
+    # Let Nixpacks automatically detect Laravel, PHP 8.2, and Node.
 
 [phases.release]
     # This runs right before the app starts, ideal for migrations and caching
