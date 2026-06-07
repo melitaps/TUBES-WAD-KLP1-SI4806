@@ -49,15 +49,10 @@ Route::middleware('auth:sanctum')->group(function () {
 
 
     //customer
-    Route::apiResource('customers', CustomerController::class);
+    Route::apiResource('/customers', CustomerController::class)->names('api.customers');
     
     //status order dr admin
     Route::put('/orders/{id}/status', [OrderStatusController::class, 'updateStatus']);
-
-    // ======================
-    // HOLIDAYS
-    // ======================
-    Route::get('/holidays', [HolidayController::class, 'index']);
 
     // ======================
     // REPORTS
