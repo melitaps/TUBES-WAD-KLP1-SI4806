@@ -135,6 +135,17 @@ class CustomerOrderController extends Controller
             'items' => 'required|json'
         ]);
         
+        // ============================================
+        // CHECK CUSTOMER MAX 20 ORDERS LIMIT
+        // ============================================
+        $customer = Customer::where('no_hp', $validated['no_hp'])->first();
+        if ($customer && $customer->total_pesanan >= 20) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Maaf, Anda telah mencapai batas maksimal 20 pesanan per pelanggan.'
+            ], 429);
+        }
+        
         DB::beginTransaction();
         
         try {

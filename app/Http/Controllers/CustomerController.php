@@ -140,16 +140,11 @@ class CustomerController extends Controller
 
         $customers = $query->latest()->get();
 
-        if ($request->type == 'pdf' || $request->type == 'excel') { 
-            
-            $pdf = Pdf::loadView('customers.export-pdf', compact('customers'))
-                      ->setPaper('a4', 'portrait');
+        $pdf = Pdf::loadView('customers.export-pdf', compact('customers'))
+                  ->setPaper('a4', 'portrait');
 
-            return $pdf->download(
-                'data-customers-' . now()->format('d-m-Y') . '.pdf'
-            );
-        }
-
-        return redirect()->back()->with('error', 'Tipe export tidak didukung');
+        return $pdf->download(
+            'data-customers-' . now()->format('d-m-Y') . '.pdf'
+        );
     }
 }
