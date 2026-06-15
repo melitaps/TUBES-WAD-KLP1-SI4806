@@ -40,7 +40,7 @@ class CustomerController extends Controller
             ]);
         }
 
-        
+        return view('customers.index', compact('customers', 'totalPelanggan'));
     }
 
         public function indexWeb(Request $request)
