@@ -43,6 +43,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/orders', [CustomerOrderController::class, 'store'])->name('orders.store');
         Route::get('/orders', [CustomerOrderController::class, 'orders'])->name('orders');
         Route::get('/orders/{id}', [CustomerOrderController::class, 'show'])->name('orders.show');
+        Route::get('/orders/{id}/export-pdf', [CustomerOrderController::class, 'exportPdf'])->name('orders.export-pdf');
     });
 
     // ====================

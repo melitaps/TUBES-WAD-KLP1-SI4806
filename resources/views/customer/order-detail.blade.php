@@ -152,7 +152,7 @@
                         <a href="{{ route('customer.orders') }}" class="btn btn-nra-primary btn-lg flex-fill">
                             <i class="bi bi-arrow-left"></i> Kembali ke Daftar Pesanan
                         </a>
-                        <a href="{{ route('customers.export', $order->id) }}"
+                        <a href="{{ route('customer.orders.export-pdf', $order->id) }}"
                                target="_blank"
                                class="btn btn-success btn-lg flex-fill">
                                 <i class="bi bi-printer"></i> Cetak Nota

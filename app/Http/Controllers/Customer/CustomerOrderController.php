@@ -240,4 +240,22 @@ class CustomerOrderController extends Controller
         
         return view('customer.order-detail', compact('order'));
     }
+
+    /**
+     * Export order to PDF
+     */
+    public function exportPdf($id)
+    {
+        $order = Order::with(['orderDetails.menu'])->findOrFail($id);
+        
+        // Check if order belongs to current user (for security)
+        if ($order->nama_pemesan !== auth()->user()->name && auth()->user()->role !== 'admin') {
+            abort(403, 'Unauthorized access to this order');
+        }
+        
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('customer.orders-export-pdf', compact('order'))
+            ->setPaper('a4', 'portrait');
+
+        return $pdf->download('Nota_Pesanan_' . $order->no_order . '.pdf');
+    }
 }
