@@ -107,8 +107,22 @@ class CustomerController extends Controller
             ->with('success', 'Data customer berhasil diupdate');
     }
 
-
     public function destroy($id)
+{
+    $customer = Customer::find($id);
+
+    if (!$customer) {
+        return response()->json([
+            'message' => 'Customer tidak ditemukan'
+        ], 404);
+    }
+
+    $customer->delete();
+
+    return redirect()->route('customers.index')->with('success', 'Customer berhasil dihapus');
+}
+
+    public function destroyApi($id)
 {
     $customer = Customer::find($id);
 
